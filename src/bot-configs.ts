@@ -1,11 +1,11 @@
-import { getShortAddress } from "@plebbit/plebbit-js";
-import type { BotConfig, CommunityInfo } from "./types.js";
+import { getShortAddress } from '@plebbit/plebbit-js';
+import type { BotConfig, CommunityInfo } from './types.js';
 
 const fiveChanFeed: BotConfig = {
-  name: "5chan-feed",
-  clientName: "5chan",
-  clientBaseUrl: "https://5chan.app",
-  listUrl: "https://raw.githubusercontent.com/bitsocialhq/lists/master/5chan-directories.json",
+  name: '5chan-feed',
+  clientName: '5chan',
+  clientBaseUrl: 'https://5chan.app',
+  listUrl: 'https://raw.githubusercontent.com/bitsocialhq/lists/master/5chan-directories.json',
 
   parseCommunities(data: any): CommunityInfo[] {
     if (!data?.directories || !Array.isArray(data.directories)) {
@@ -25,10 +25,7 @@ const fiveChanFeed: BotConfig = {
   },
 
   getPostButtons(community: CommunityInfo, cid: string) {
-    return [
-      { text: "View on 5chan", url: this.getPostUrl(community, cid) },
-      { text: "View on Seedit", url: `https://seedit.app/#/p/${community.address}/c/${cid}` },
-    ];
+    return [{ text: 'View on 5chan', url: this.getPostUrl(community, cid) }];
   },
 
   getCommunityLabel(community: CommunityInfo): string {
@@ -42,13 +39,13 @@ const fiveChanFeed: BotConfig = {
 };
 
 export const botConfigs: Record<string, BotConfig> = {
-  "5chan-feed": fiveChanFeed,
+  '5chan-feed': fiveChanFeed,
 };
 
 export function getBotConfig(name: string): BotConfig {
   const config = botConfigs[name];
   if (!config) {
-    const available = Object.keys(botConfigs).join(", ");
+    const available = Object.keys(botConfigs).join(', ');
     throw new Error(`Unknown bot "${name}". Available bots: ${available}`);
   }
   return config;
