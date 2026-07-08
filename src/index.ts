@@ -3,17 +3,17 @@ import { startFeedBot, setShuttingDown } from "./feed-bot.js";
 import { getBotConfig } from "./bot-configs.js";
 import { Scenes, Telegraf } from "telegraf";
 import { Logger } from "tslog";
-import Plebbit from "@plebbit/plebbit-js";
+import PKC from "@pkcprotocol/pkc-js";
 
 export const log = new Logger({
-  minLevel: "info",
+  minLevel: "INFO",
   prettyLogTemplate:
     "{{yyyy}}.{{mm}}.{{dd}} {{hh}}:{{MM}}:{{ss}} {{logLevelName}} [{{filePathWithLine}}] ",
   prettyErrorTemplate:
     "{{yyyy}}.{{mm}}.{{dd}} {{hh}}:{{MM}}:{{ss}} {{logLevelName}} [{{filePathWithLine}}] {{errorName}}: {{errorMessage}}\n{{errorStack}}",
 });
 
-dotenv.config();
+dotenv.config({ quiet: true });
 
 const botName = process.env.BOT_NAME || "5chan-feed";
 const botConfig = getBotConfig(botName);
@@ -27,7 +27,7 @@ export const tgBot = new Telegraf<Scenes.WizardContext>(process.env.BOT_TOKEN!);
 
 process.env.DEBUG = "";
 
-// Filter noisy console output from IPFS/Plebbit internals
+// Filter noisy console output from IPFS/PKC internals
 const originalConsoleLog = console.log;
 const originalConsoleError = console.error;
 const originalConsoleWarn = console.warn;
@@ -53,7 +53,7 @@ console.warn = (...args: any[]) => {
   if (!isNoisyOutput(args)) originalConsoleWarn.apply(console, args);
 };
 
-export let plebbit: any;
+export let pkc: any;
 
 let errorCleanupInterval: NodeJS.Timeout | undefined;
 let isShuttingDown = false;
@@ -75,9 +75,9 @@ const gracefulShutdown = async (signal: string) => {
       await tgBot.stop();
     }
 
-    if (plebbit) {
-      log.info("Stopping Plebbit instance...");
-      await plebbit.destroy();
+    if (pkc) {
+      log.info("Stopping PKC instance...");
+      await pkc.destroy();
     }
 
     if (errorCleanupInterval) clearInterval(errorCleanupInterval);
@@ -124,29 +124,15 @@ const start = async () => {
       log.warn("Could not get bot info:", error instanceof Error ? error.message : String(error));
     }
 
-    log.info("Initializing Plebbit...");
+    log.info("Initializing PKC...");
     try {
-      plebbit = await Promise.race([
-        Plebbit({
+      pkc = await Promise.race([
+        PKC({
           kuboRpcClientsOptions: [`http://localhost:50019/api/v0`],
-          chainProviders: {
-            eth: {
-              urls: ["ethers.js", "https://ethrpc.xyz", "viem"],
-              chainId: 1,
-            },
-            avax: {
-              urls: ["https://api.avax.network/ext/bc/C/rpc"],
-              chainId: 43114,
-            },
-            matic: {
-              urls: ["https://polygon-rpc.com"],
-              chainId: 137,
-            },
-          },
         }),
         new Promise((_, reject) => {
           setTimeout(
-            () => reject(new Error("Plebbit initialization timed out after 2 minutes")),
+            () => reject(new Error("PKC initialization timed out after 2 minutes")),
             2 * 60 * 1000,
           );
         }),
@@ -167,8 +153,8 @@ const start = async () => {
         }
       }, ERROR_CLEANUP_INTERVAL);
 
-      plebbit.on("error", (error: any) => {
-        const errorKey = error.message || error.code || "Unknown plebbit error";
+      pkc.on("error", (error: any) => {
+        const errorKey = error.message || error.code || "Unknown PKC error";
         const now = Date.now();
         const errorInfo = errorCounts.get(errorKey) || { count: 0, lastLogged: 0 };
 
@@ -199,15 +185,15 @@ const start = async () => {
           } else if (isIPFSError) {
             log.warn(`IPFS connectivity issue: ${errorKey.substring(0, 50)}...`);
           } else {
-            log.error("Plebbit error:", errorKey);
+            log.error("PKC error:", errorKey);
           }
         }
       });
 
-      log.info("Plebbit initialized successfully");
+      log.info("PKC initialized successfully");
     } catch (error) {
       log.error(
-        "Failed to initialize Plebbit:",
+        "Failed to initialize PKC:",
         error instanceof Error ? error.message : String(error),
       );
       throw error;

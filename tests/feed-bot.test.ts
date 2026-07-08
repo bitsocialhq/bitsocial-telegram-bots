@@ -8,11 +8,11 @@ const { mockFetch, mockReadFileSync, mockWriteFileSync } = vi.hoisted(() => ({
 
 vi.mock('../src/index.js', () => ({
   log: { info: vi.fn(), warn: vi.fn(), error: vi.fn() },
-  plebbit: {},
+  pkc: {},
 }));
 
-vi.mock('@plebbit/plebbit-js', () => ({
-  getShortAddress: vi.fn((addr: string) => `${addr.slice(0, 12)}...`),
+vi.mock('@pkcprotocol/pkc-js', () => ({
+  getShortAddress: vi.fn(({ name }: { name: string }) => `${name.slice(0, 12)}...`),
 }));
 
 vi.mock('node-fetch', () => ({ default: mockFetch }));

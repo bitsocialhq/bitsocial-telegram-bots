@@ -2,7 +2,7 @@
     "name": "bitsocial-telegram-bots",
     "version": "0.1.0",
     "description": "Telegram feed bots for Bitsocial clients (5chan, Seedit, etc.)",
-    "author": "bitsocialnet",
+    "author": "Bitsocial Forge",
     "license": "GPL-3.0-or-later",
     "main": "index.js",
     "type": "module",
@@ -15,23 +15,19 @@
         "prettier": "prettier src/**/*.{js,ts} --write"
     },
     "dependencies": {
-        "@plebbit/plebbit-js": "https://github.com/plebbit/plebbit-js.git#692ec349f01aa6d8e939ff1d6d07315ab92e4099",
-        "dotenv": "16.4.5",
-        "fs": "0.0.1-security",
+        "@pkcprotocol/pkc-js": "0.0.65",
+        "dotenv": "17.4.2",
         "node-fetch": "3.3.2",
-        "p-queue": "8.0.1",
+        "p-queue": "9.3.1",
         "telegraf": "4.16.3",
-        "tslog": "4.9.2",
-        "typescript": "6.0.2"
+        "tslog": "4.11.0",
+        "typescript": "6.0.3"
     },
     "devDependencies": {
-        "@telegraf/types": "7.1.0",
-        "@types/node": "20.11.24",
-        "prettier": "3.5.3",
-        "tsx": "4.7.1",
-        "vitest": "^4.0.18"
+        "@types/node": "26.1.1",
+        "prettier": "3.9.4",
+        "tsx": "4.23.0",
+        "vitest": "^4.1.10"
     },
-    "resolutions": {
-        "skia-canvas": "2.0.2"
-    }
+    "packageManager": "yarn@4.17.0"
 }

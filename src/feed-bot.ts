@@ -1,9 +1,9 @@
 import * as fs from 'node:fs';
 import { Scenes, Telegraf } from 'telegraf';
-import { log, plebbit } from './index.js';
+import { log, pkc } from './index.js';
 import fetch from 'node-fetch';
 import PQueue from 'p-queue';
-import { getShortAddress } from '@plebbit/plebbit-js';
+import { getShortAddress } from '@pkcprotocol/pkc-js';
 import type { BotConfig, CommunityInfo } from './types.js';
 import { getMediaTypeFromUrl, isTwitterVideoUrl, escapeHtml, truncatePost } from './utils.js';
 
@@ -127,41 +127,41 @@ export async function sendMediaToChat(
   }
 }
 
-async function scrollPosts(community: CommunityInfo, tgBotInstance: Telegraf<Scenes.WizardContext>, plebbitInstance: any, subInstance: any, config: BotConfig) {
+async function scrollPosts(community: CommunityInfo, tgBotInstance: Telegraf<Scenes.WizardContext>, pkcInstance: any, communityInstance: any, config: BotConfig) {
   const address = community.address;
   try {
     let posts: any[] = [];
 
     try {
-      if (subInstance.posts?.pageCids?.new) {
-        const newPage = await subInstance.posts.getPage(subInstance.posts.pageCids.new);
+      if (communityInstance.posts?.pageCids?.new) {
+        const newPage = await communityInstance.posts.getPage(communityInstance.posts.pageCids.new);
         posts = newPage.comments || [];
         if (posts.length > 10) {
           log.info(`Loaded ${posts.length} posts from 'new' page for ${config.getCommunityLabel(community)}`);
         }
-      } else if (subInstance.posts?.pages?.hot?.comments) {
-        posts = subInstance.posts.pages.hot.comments;
+      } else if (communityInstance.posts?.pages?.hot?.comments) {
+        posts = communityInstance.posts.pages.hot.comments;
         if (posts.length > 10) {
           log.info(`Using ${posts.length} preloaded posts from 'hot' page for ${config.getCommunityLabel(community)}`);
         }
       } else {
         log.warn(`No posts pages available for ${config.getCommunityLabel(community)}, falling back to manual traversal`);
-        let currentPostCid = subInstance.lastPostCid;
+        let currentPostCid = communityInstance.lastPostCid;
         let counter = 0;
         while (currentPostCid && counter < 20) {
           counter += 1;
-          const post = await plebbitInstance.getComment(currentPostCid);
+          const post = await pkcInstance.getComment({ cid: currentPostCid });
           posts.push(post);
           currentPostCid = post.previousCid;
         }
       }
     } catch (pageError) {
       log.warn(`Error loading posts page for ${config.getCommunityLabel(community)}, falling back to manual traversal:`, pageError);
-      let currentPostCid = subInstance.lastPostCid;
+      let currentPostCid = communityInstance.lastPostCid;
       let counter = 0;
       while (currentPostCid && counter < 20) {
         counter += 1;
-        const post = await plebbitInstance.getComment(currentPostCid);
+        const post = await pkcInstance.getComment({ cid: currentPostCid });
         posts.push(post);
         currentPostCid = post.previousCid;
       }
@@ -169,7 +169,7 @@ async function scrollPosts(community: CommunityInfo, tgBotInstance: Telegraf<Sce
 
     for (const newPost of posts.slice(0, 20)) {
       if (newPost.cid && !processedCids.has(newPost.cid)) {
-        const comment = await plebbitInstance.createComment({ cid: newPost.cid });
+        const comment = await pkcInstance.createComment({ cid: newPost.cid });
         await comment.update();
 
         await Promise.race([
@@ -205,7 +205,7 @@ async function scrollPosts(community: CommunityInfo, tgBotInstance: Telegraf<Sce
 
         const communityLabel = config.getCommunityLabel(community);
         const spoilerTag = newPost.spoiler ? '[SPOILER]' : newPost.nsfw ? '[NSFW]' : '';
-        const captionMessage = `<b>${title ? title + ' ' : ''}${spoilerTag}</b>\n${content}\n\nPosted on <b>${communityLabel}</b> by ${getShortAddress(newPost.author.address)}`;
+        const captionMessage = `<b>${title ? title + ' ' : ''}${spoilerTag}</b>\n${content}\n\nPosted on <b>${communityLabel}</b> by ${getShortAddress({ name: newPost.author.address })}`;
 
         const chatIds = getChatIds();
         const buttons = config.getPostButtons(community, newPost.cid);
@@ -384,8 +384,8 @@ export async function startFeedBot(tgBotInstance: Telegraf<Scenes.WizardContext>
           try {
             if (isShuttingDown) return { postsFound: 0 };
 
-            const subInstance: any = await Promise.race([
-              plebbit.getSubplebbit(community.address),
+            const communityInstance: any = await Promise.race([
+              pkc.getCommunity({ address: community.address }),
               new Promise((_, reject) => {
                 setTimeout(() => reject(new Error('Operation timed out after 5 minutes')), 5 * 60 * 1000);
               }),
@@ -393,10 +393,10 @@ export async function startFeedBot(tgBotInstance: Telegraf<Scenes.WizardContext>
 
             if (isShuttingDown) return { postsFound: 0 };
 
-            if (subInstance.address) {
+            if (communityInstance.address) {
               const postsBefore = processedCids.size;
               await Promise.race([
-                scrollPosts(community, tgBotInstance, plebbit, subInstance, config),
+                scrollPosts(community, tgBotInstance, pkc, communityInstance, config),
                 new Promise((_, reject) => {
                   setTimeout(() => reject(new Error(`Timed out after 6 minutes of post crawling on ${label}`)), 6 * 60 * 1000);
                 }),

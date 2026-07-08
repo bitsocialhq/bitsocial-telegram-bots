@@ -1,4 +1,4 @@
-import { getShortAddress } from '@plebbit/plebbit-js';
+import { getShortAddress } from '@pkcprotocol/pkc-js';
 import type { BotConfig, CommunityInfo } from './types.js';
 
 const fiveChanFeed: BotConfig = {
@@ -20,7 +20,7 @@ const fiveChanFeed: BotConfig = {
   },
 
   getPostUrl(community: CommunityInfo, cid: string): string {
-    const board = community.directoryCode || getShortAddress(community.address);
+    const board = community.directoryCode || getShortAddress({ name: community.address });
     return `${this.clientBaseUrl}/#/${board}/thread/${cid}`;
   },
 
@@ -32,7 +32,7 @@ const fiveChanFeed: BotConfig = {
     if (community.directoryCode) {
       return `/${community.directoryCode}/`;
     }
-    return `p/${getShortAddress(community.address)}`;
+    return `p/${getShortAddress({ name: community.address })}`;
   },
 
   filterNsfw: true,

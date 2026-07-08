@@ -1,7 +1,7 @@
 import { describe, test, expect, vi } from 'vitest';
 
-vi.mock('@plebbit/plebbit-js', () => ({
-  getShortAddress: vi.fn((addr: string) => `${addr.slice(0, 12)}...`),
+vi.mock('@pkcprotocol/pkc-js', () => ({
+  getShortAddress: vi.fn(({ name }: { name: string }) => `${name.slice(0, 12)}...`),
 }));
 
 import { botConfigs, getBotConfig } from '../src/bot-configs.js';
