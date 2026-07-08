@@ -77,4 +77,4 @@ To add a bot for a different Bitsocial client:
 
 ## License
 
-GPL-2.0
+GPL-3.0-or-later
