@@ -30,7 +30,7 @@ bitsocial-telegram-bots runs Telegram feed bots for Bitsocial clients. Each bot 
 | Bot logic changed (`src/feed-bot.ts`, `src/index.ts`) | Run `yarn build` to verify compilation |
 | Bot config added/changed (`src/bot-configs.ts`, `src/types.ts`) | Run `yarn build` and verify community list URL is reachable |
 | `package.json` changed | Run `yarn install` to keep `yarn.lock` in sync |
-| Bug report in a specific file/line | Start with git history scan from `docs/agent-playbooks/bug-investigation.md` before editing |
+| Bug report | Reproduce the reported behavior or establish the defect from conclusive source/runtime evidence before editing; for a specific file/line, also start with the git history scan in `docs/agent-playbooks/bug-investigation.md` |
 | GitHub operation needed | Use `gh` CLI, not GitHub MCP |
 | User asks for commit/issue phrasing | Use `docs/agent-playbooks/commit-issue-format.md` |
 | Surprising/ambiguous repo behavior encountered | Alert developer and, once confirmed, document in `docs/agent-playbooks/known-surprises.md` |
@@ -108,6 +108,9 @@ Each bot only links to its own client. The 5chan bot produces "View on 5chan" bu
 
 ### Bug Investigation Rules
 
+- A bug fix requires either a reproduction of the reported behavior or conclusive source/runtime evidence that identifies both the defect and the correct fix with equivalent certainty.
+- If the bug cannot be reproduced and the evidence is not conclusive, do not guess or make speculative changes. Report what was checked, say that the bug was not reproduced, and ask for the missing reproduction details when useful.
+- When proceeding from conclusive evidence without a reproduction, explain why the evidence is sufficient and add a targeted regression test when practical.
 - For bug reports tied to a specific file/line, check relevant git history before any fix.
 - Minimum sequence: `git log --oneline` or `git blame` first, then scoped `git show` for relevant commits.
 - Full workflow: `docs/agent-playbooks/bug-investigation.md`.
